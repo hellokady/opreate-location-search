@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { EventEmitter } from "~/utils";
 import { EMPTY_LIST, GLOBAL_CHANNEL_ID } from "~/data";
@@ -11,11 +11,12 @@ const eventEmitter = new EventEmitter();
  * @param fields 用于初始化location.search参数的类型校验，注意：该值不表示默认值
  * @param channelId 通信Id，不传递时默认使用全局通信Id【global】
  */
-const useSearchParams = <T>(
+const useSearchParams = <T extends object>(
   fields: T,
   channelId?: string
 ): UseSearchParams<T> => {
   const CHANNEL_ID = channelId || GLOBAL_CHANNEL_ID;
+  const [, forceUpdate] = useState(0);
 
   useEffect(() => {
     eventEmitter.on(CHANNEL_ID, updateByChannelId);
@@ -89,6 +90,8 @@ const useSearchParams = <T>(
     const url = new URL(location.href);
     url.search = toString();
     window.history.replaceState({}, "", url);
+
+    forceUpdate((c) => c + 1);
   }, []);
 
   const update = useCallback((newParams: Partial<T>) => {
